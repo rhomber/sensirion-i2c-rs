@@ -1,17 +1,17 @@
 //! Helper functions for I²C communication.
 
 use crate::crc8;
-use embedded_hal::blocking::i2c;
+use embedded_hal::i2c::I2c;
 
 /// All possible errors in this crate
 #[derive(Debug, PartialEq, Copy, Clone)]
-pub enum Error<I2cWrite: i2c::Write, I2cRead: i2c::Read> {
+pub enum Error<I2cWrite: I2c, I2cRead: I2c> {
     I2cWrite(I2cWrite::Error),
     I2cRead(I2cRead::Error),
     Crc,
 }
 
-impl<W: i2c::Write, R: i2c::Read> From<crc8::Error> for Error<W, R> {
+impl<W: I2c, R: I2c> From<crc8::Error> for Error<W, R> {
     fn from(err: crc8::Error) -> Error<W, R> {
         match err {
             crc8::Error::CrcError => Error::Crc,
@@ -21,7 +21,7 @@ impl<W: i2c::Write, R: i2c::Read> From<crc8::Error> for Error<W, R> {
 
 /// Write an u16 command to the I²C bus.
 #[deprecated(note = "Please use `write_command_u16` instead.")]
-pub fn write_command<I2cWrite: i2c::Write>(
+pub fn write_command<I2cWrite: I2c>(
     i2c: &mut I2cWrite,
     addr: u8,
     command: u16,
@@ -30,7 +30,7 @@ pub fn write_command<I2cWrite: i2c::Write>(
 }
 
 /// Write an u8 command to the I²C bus.
-pub fn write_command_u8<I2cWrite: i2c::Write>(
+pub fn write_command_u8<I2cWrite: I2c>(
     i2c: &mut I2cWrite,
     addr: u8,
     command: u8,
@@ -39,7 +39,7 @@ pub fn write_command_u8<I2cWrite: i2c::Write>(
 }
 
 /// Write an u16 command to the I²C bus.
-pub fn write_command_u16<I2cWrite: i2c::Write>(
+pub fn write_command_u16<I2cWrite: I2c>(
     i2c: &mut I2cWrite,
     addr: u8,
     command: u16,
@@ -55,7 +55,7 @@ pub fn write_command_u16<I2cWrite: i2c::Write>(
 ///
 /// This method will consider every third byte a checksum byte. If the buffer size is not a
 /// multiple of 3, then it will panic.
-pub fn read_words_with_crc<I2c: i2c::Read + i2c::Write>(
+pub fn read_words_with_crc<I2c: embedded_hal::i2c::I2c>(
     i2c: &mut I2c,
     addr: u8,
     data: &mut [u8],
